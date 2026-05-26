@@ -137,37 +137,81 @@ export const ITEMS = {
 // Add your model's exact label strings here. Lowercase + underscore-friendly match.
 // Anything not mapped falls through to `unknown`.
 export const LABEL_TO_ITEM = {
+  // ===== Direct mappings (backend label === existing legacy label) =====
   plastic_bottle: 'pet_bottle',
   'plastic bottle': 'pet_bottle',
   pet: 'pet_bottle',
   bottle: 'pet_bottle',
+
   paper: 'paper',
   newspaper: 'paper',
+
   cardboard: 'cardboard',
   box: 'cardboard',
+
   aluminum_can: 'aluminum_can',
   can: 'aluminum_can',
   metal: 'aluminum_can',
+  metal_can: 'aluminum_can',          // backend -> existing item
+
   glass: 'glass',
   glass_bottle: 'glass',
+
   apple: 'apple_core',
   apple_core: 'apple_core',
   banana: 'banana_peel',
   banana_peel: 'banana_peel',
+
   food: 'food_scraps',
   food_waste: 'food_scraps',
   organic: 'food_scraps',
   compost: 'food_scraps',
+  organic_food: 'food_scraps',        // backend -> existing item
+
   coffee: 'coffee_grounds',
   coffee_grounds: 'coffee_grounds',
+
   leaves: 'yard_waste',
   yard_waste: 'yard_waste',
+
   battery: 'battery',
   electronics: 'electronics',
   phone: 'electronics',
-  laptop: 'electronics'
-};
+  laptop: 'electronics',
 
+  // ===== New backend classes that need mapping =====
+
+  // Hard plastic (yogurt cups, plastic cutlery, tubs) — recyclable like bottles
+  hard_plastic: 'pet_bottle',
+
+  // Plastic film (bags, wrappers, cling film) — usually NOT curbside-recyclable.
+  // Map to unknown so user gets "landfill" guidance (correct for most cities).
+  plastic_film: 'unknown',
+
+  // Other metal (foil, lids, scrap) — recyclable, treat as aluminum_can
+  other_metal: 'aluminum_can',
+
+  // Other glass (jars, cups, broken glass) — glass category
+  other_glass: 'glass',
+
+  // Textiles — no dedicated catalog item; route to unknown for now.
+  // (Consider adding a 'textiles' item to ITEMS with stream: 'recycle'
+  //  and bin: 'Textile drop-off' if you want first-class treatment.)
+  textiles: 'unknown',
+
+  // Cigarette waste — not recyclable, definitely landfill
+  cigarette_waste: 'unknown',
+
+  // Sanitary waste (tissues, masks, gloves) — landfill
+  sanitary_waste: 'unknown',
+
+  // Hazardous (batteries, chemicals) — route to battery item so user sees
+  // "E-waste drop-off" guidance, which is correct for most hazardous items.
+  hazardous: 'battery',
+
+  // Catch-all
+  other_mixed: 'unknown',
+};
 export function resolveItem(label) {
   if (!label) return ITEMS.unknown;
   const norm = String(label).toLowerCase().replace(/\s+/g, '_');
