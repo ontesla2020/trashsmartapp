@@ -8,8 +8,10 @@ export default function ScanResult() {
   const navigate = useNavigate();
   const { actions } = useGameState();
   const result = location.state?.result;
+  const photoBlob = location.state?.photoBlob;
   const recordedRef = useRef(false);
   const [verified, setVerified] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState(null);
   const fileRef = useRef(null);
 
   // Record the scan exactly once when this screen mounts.
@@ -20,9 +22,21 @@ export default function ScanResult() {
       itemId: result.item.id || 'unknown',
       stream: result.item.stream,
       baseXp: result.item.xp,
-      verified: false
+      verified: false,
+      arm: result.arm,
+      space: result.space,
+      label: result.label,
+      confidence: result.confidence
     });
   }, [result, actions]);
+
+  // Build a fresh object URL for the captured photo and free it on unmount.
+  useEffect(() => {
+    if (!photoBlob) return undefined;
+    const url = URL.createObjectURL(photoBlob);
+    setPhotoUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photoBlob]);
 
   if (!result) return <Navigate to="/scan" replace />;
 
@@ -37,24 +51,53 @@ export default function ScanResult() {
       itemId: result.item.id + ':verify',
       stream: result.item.stream,
       baseXp: Math.round(result.item.xp * 0.5),
-      verified: true
+      verified: true,
+      arm: result.arm,
+      space: result.space,
+      label: result.label,
+      confidence: result.confidence
     });
   }
 
   return (
     <div className="screen scan-result">
-      <span className="stream-pill" style={{ background: stream.soft, color: stream.dark }}>
-        <i className={`ti ${stream.icon}`} aria-hidden="true"></i>
-        {stream.label.toUpperCase()} STREAM
-      </span>
+      <div className="result-top-row">
+        <span className="stream-pill" style={{ background: stream.soft, color: stream.dark }}>
+          <i className={`ti ${stream.icon}`} aria-hidden="true"></i>
+          {stream.label.toUpperCase()} STREAM
+        </span>
+        {result.arm && (
+          <span className={`arm-pill${result.arm.startsWith('B') ? ' arm-b' : ''}`}>
+            <i className="ti ti-flask" aria-hidden="true"></i>
+            {result.arm}
+          </span>
+        )}
+      </div>
+
+      {photoUrl && (
+        <div className="result-photo">
+          <img src={photoUrl} alt="Your scan" />
+          <span className="result-photo-corner tl"></span>
+          <span className="result-photo-corner tr"></span>
+          <span className="result-photo-corner bl"></span>
+          <span className="result-photo-corner br"></span>
+        </div>
+      )}
 
       <div className="result-meta">
-        <div className="kicker">IDENTIFIED</div>
+        <div className="kicker">{result.uncertain ? 'CLOSEST GUESS' : 'IDENTIFIED'}</div>
         <h1>{result.item.name}</h1>
         <div className="result-sub">
           {Math.round((result.confidence || 0) * 100)}% confidence
           {result.source === 'mock' && <span className="muted"> · mock model</span>}
+          {result.source === 'huggingface-space' && <span className="muted"> · your HF model</span>}
         </div>
+        {result.uncertain && (
+          <div className="uncertain-note">
+            <i className="ti ti-alert-triangle" aria-hidden="true"></i>
+            Model isn't sure — try a tighter shot or better lighting. We're awarding partial XP either way.
+          </div>
+        )}
       </div>
 
       <div className="xp-card" style={{ background: stream.color }}>

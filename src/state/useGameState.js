@@ -65,7 +65,7 @@ export function GameStateProvider({ children }) {
   // Records a scan. baseXp is the literal XP to add (caller controls amount).
   // verified: true is used for the bonus call after the user snaps a proof photo.
   // Verify-required quests only tick when verified is true.
-  const recordScan = useCallback(({ itemId, stream, baseXp, verified }) => {
+  const recordScan = useCallback(({ itemId, stream, baseXp, verified, arm, space, label, confidence }) => {
     setState((s) => {
       const combo = comboMultiplier(s);
       const earned = Math.round(baseXp * combo);
@@ -93,7 +93,18 @@ export function GameStateProvider({ children }) {
       }
 
       const history = [
-        { at: Date.now(), itemId, stream, xp: earned, verified: !!verified, combo },
+        {
+          at: Date.now(),
+          itemId,
+          stream,
+          xp: earned,
+          verified: !!verified,
+          combo,
+          arm: arm || null,
+          space: space || null,
+          label: label || null,
+          confidence: typeof confidence === 'number' ? confidence : null
+        },
         ...s.history
       ].slice(0, 200);
 

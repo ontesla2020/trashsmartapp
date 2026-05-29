@@ -20,7 +20,7 @@ export const STREAMS = {
   },
   ewaste: {
     id: 'ewaste',
-    label: 'E-waste',
+    label: 'Hazmat / E-waste',
     color: '#1D9E75',
     accent: '#5DCAA5',
     soft: '#E1F5EE',
@@ -38,105 +38,128 @@ export const STREAMS = {
   }
 };
 
-// Catalog of items we know how to celebrate. Add freely.
+// Catalog mirrors the 15 classes from the TrashSmart YOLOv8 + EfficientNetV2
+// Space (https://huggingface.co/spaces/ontesla2020/trashsmartapp1). Each
+// class is mapped to one of our streams + a tip + base XP reward.
 export const ITEMS = {
-  pet_bottle: {
-    name: 'PET plastic bottle',
-    stream: 'recycle',
-    xp: 15,
-    tip: 'Rinse and remove the cap before recycling.',
-    bin: 'Blue bin'
-  },
   paper: {
     name: 'Paper',
     stream: 'recycle',
     xp: 10,
     tip: 'Clean dry paper only — no greasy pizza boxes.',
-    bin: 'Blue bin'
+    bin: 'Blue recycling bin'
   },
   cardboard: {
     name: 'Cardboard',
     stream: 'recycle',
     xp: 10,
-    tip: 'Flatten the box to save bin space.',
-    bin: 'Blue bin'
+    tip: 'Flatten the box before recycling.',
+    bin: 'Blue recycling bin'
   },
-  aluminum_can: {
-    name: 'Aluminum can',
+  plastic_bottle: {
+    name: 'Plastic bottle',
     stream: 'recycle',
     xp: 15,
-    tip: 'Rinse off liquid residue.',
-    bin: 'Blue bin'
+    tip: 'Empty and rinse. Caps on.',
+    bin: 'Blue recycling bin'
   },
-  glass: {
-    name: 'Glass container',
+  hard_plastic: {
+    name: 'Hard plastic',
+    stream: 'recycle',
+    xp: 15,
+    tip: 'Rinse before recycling.',
+    bin: 'Blue recycling bin'
+  },
+  plastic_film: {
+    name: 'Plastic film',
+    stream: 'trash',
+    xp: 5,
+    tip: 'Not curbside-recyclable. Take to a store film drop-off.',
+    bin: 'Store drop-off'
+  },
+  metal_can: {
+    name: 'Metal can',
+    stream: 'recycle',
+    xp: 15,
+    tip: 'Empty and rinse.',
+    bin: 'Blue recycling bin'
+  },
+  other_metal: {
+    name: 'Scrap metal',
+    stream: 'recycle',
+    xp: 15,
+    tip: 'Clean before recycling.',
+    bin: 'Blue recycling bin'
+  },
+  glass_bottle: {
+    name: 'Glass bottle',
     stream: 'recycle',
     xp: 15,
     tip: 'Rinse — leave the label on.',
-    bin: 'Blue bin'
+    bin: 'Blue recycling bin'
   },
-  apple_core: {
-    name: 'Apple core',
-    stream: 'organic',
-    xp: 15,
-    tip: 'Compost it — peel the sticker off first.',
-    bin: 'Brown bin'
+  other_glass: {
+    name: 'Broken glass',
+    stream: 'trash',
+    xp: 5,
+    tip: 'Wrap and trash — broken glass is not curbside-recyclable.',
+    bin: 'Landfill bin'
   },
-  banana_peel: {
-    name: 'Banana peel',
-    stream: 'organic',
-    xp: 15,
-    tip: 'Compost — skip the plastic bag.',
-    bin: 'Brown bin'
-  },
-  food_scraps: {
-    name: 'Food scraps',
+  organic_food: {
+    name: 'Food waste',
     stream: 'organic',
     xp: 20,
-    tip: 'Drop in the brown bin or backyard compost.',
-    bin: 'Brown bin'
+    tip: 'Compost it — skip the plastic bag.',
+    bin: 'Green compost bin'
   },
-  coffee_grounds: {
-    name: 'Coffee grounds',
-    stream: 'organic',
+  textiles: {
+    name: 'Textiles',
+    stream: 'trash',
     xp: 10,
-    tip: 'Great compost — paper filter is fine to include.',
-    bin: 'Brown bin'
+    tip: 'Donate if wearable, or use a textile drop-off bin.',
+    bin: 'Donation / drop-off'
   },
-  yard_waste: {
-    name: 'Yard waste',
-    stream: 'organic',
-    xp: 25,
-    tip: 'Leaves and twigs only — no plastic ties.',
-    bin: 'Green yard bin'
+  cigarette_waste: {
+    name: 'Cigarette waste',
+    stream: 'trash',
+    xp: 5,
+    tip: 'Place in trash. Never on the ground or in storm drains.',
+    bin: 'Landfill bin'
   },
-  battery: {
-    name: 'Battery',
-    stream: 'ewaste',
-    xp: 30,
-    tip: 'Never the curb. Find an e-waste drop-off.',
-    bin: 'E-waste drop-off'
+  sanitary_waste: {
+    name: 'Sanitary waste',
+    stream: 'trash',
+    xp: 5,
+    tip: 'Wrap and trash.',
+    bin: 'Landfill bin'
   },
-  electronics: {
-    name: 'Small electronics',
+  hazardous: {
+    name: 'Hazardous waste',
     stream: 'ewaste',
     xp: 35,
-    tip: 'Wipe personal data before dropping off.',
-    bin: 'E-waste drop-off'
+    tip: 'Take to a hazmat facility — never any curbside bin.',
+    bin: 'Hazmat facility'
+  },
+  other_mixed: {
+    name: 'Mixed waste',
+    stream: 'trash',
+    xp: 5,
+    tip: 'When in doubt, the trash bin is safer than contaminating recycling.',
+    bin: 'Landfill bin'
   },
   unknown: {
     name: 'Unidentified item',
     stream: 'trash',
     xp: 5,
     tip: "We weren't sure. When in doubt, landfill is safer than contaminating recycling.",
-    bin: 'Landfill'
+    bin: 'Landfill bin'
   }
 };
 
-// Hugging Face model labels → catalog item ids.
-// Add your model's exact label strings here. Lowercase + underscore-friendly match.
-// Anything not mapped falls through to `unknown`.
+// Maps the model's class strings (and a few aliases) to catalog item ids.
+// Add aliases freely — the resolver normalises whitespace and case.
 export const LABEL_TO_ITEM = {
+<<<<<<< Updated upstream
   // ===== Direct mappings (backend label === existing legacy label) =====
   plastic_bottle: 'pet_bottle',
   'plastic bottle': 'pet_bottle',
@@ -178,6 +201,24 @@ export const LABEL_TO_ITEM = {
   electronics: 'electronics',
   phone: 'electronics',
   laptop: 'electronics',
+=======
+  paper: 'paper',
+  cardboard: 'cardboard',
+  plastic_bottle: 'plastic_bottle',
+  hard_plastic: 'hard_plastic',
+  plastic_film: 'plastic_film',
+  metal_can: 'metal_can',
+  other_metal: 'other_metal',
+  glass_bottle: 'glass_bottle',
+  other_glass: 'other_glass',
+  organic_food: 'organic_food',
+  textiles: 'textiles',
+  cigarette_waste: 'cigarette_waste',
+  sanitary_waste: 'sanitary_waste',
+  hazardous: 'hazardous',
+  other_mixed: 'other_mixed'
+};
+>>>>>>> Stashed changes
 
   // ===== New backend classes that need mapping =====
 
@@ -213,9 +254,9 @@ export const LABEL_TO_ITEM = {
   other_mixed: 'unknown',
 };
 export function resolveItem(label) {
-  if (!label) return ITEMS.unknown;
-  const norm = String(label).toLowerCase().replace(/\s+/g, '_');
-  const id = LABEL_TO_ITEM[norm] || LABEL_TO_ITEM[norm.replace(/_/g, ' ')] || 'unknown';
+  if (!label) return { id: 'unknown', ...ITEMS.unknown };
+  const norm = String(label).toLowerCase().trim().replace(/\s+/g, '_');
+  const id = LABEL_TO_ITEM[norm] || 'unknown';
   return { id, ...ITEMS[id] };
 }
 
