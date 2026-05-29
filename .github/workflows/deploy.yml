@@ -32,6 +32,13 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Configure Pages
+        # enablement: true auto-turns-on GitHub Pages for the repo if it
+        # isn't already enabled, removing the chicken-and-egg setup step.
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - name: Install
         # Using `npm install` instead of `npm ci` because package-lock.json
         # is gitignored in this project. Swap to `npm ci` if you decide to
@@ -41,9 +48,10 @@ jobs:
       - name: Build
         env:
           # Public, non-secret values — fine to keep in the workflow.
+          # Quoted because the middle dot is a non-ASCII character.
           # To switch arms in prod, change these two lines and push.
-          VITE_HF_SPACE: ontesla2020/trashsmartapp1
-          VITE_MODEL_ARM: A · two-stage
+          VITE_HF_SPACE: "ontesla2020/trashsmartapp1"
+          VITE_MODEL_ARM: "A · two-stage"
         run: npm run build
 
       - name: Upload Pages artifact
