@@ -30,7 +30,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          # No `cache: npm` because package-lock.json is gitignored.
+          # If you commit the lockfile later, you can add caching back.
 
       - name: Configure Pages
         # enablement: true auto-turns-on GitHub Pages for the repo if it
