@@ -1,0 +1,63 @@
+# Deploy the TrashSmart PWA to GitHub Pages on every push to main.
+# The repo Settings → Pages must have Source set to "GitHub Actions"
+# and the Custom domain set to trashsmart.us (public/CNAME pins it
+# back on each deploy, so this stays sticky).
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        # Using `npm install` instead of `npm ci` because package-lock.json
+        # is gitignored in this project. Swap to `npm ci` if you decide to
+        # commit the lockfile (recommended for reproducible builds).
+        run: npm install
+
+      - name: Build
+        env:
+          # Public, non-secret values — fine to keep in the workflow.
+          # To switch arms in prod, change these two lines and push.
+          VITE_HF_SPACE: ontesla2020/trashsmartapp1
+          VITE_MODEL_ARM: A · two-stage
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
