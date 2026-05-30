@@ -34,11 +34,9 @@ jobs:
           # If you commit the lockfile later, you can add caching back.
 
       - name: Configure Pages
-        # enablement: true auto-turns-on GitHub Pages for the repo if it
-        # isn't already enabled, removing the chicken-and-egg setup step.
+        # Pages must already be enabled in repo Settings → Pages with
+        # Source set to "GitHub Actions" before this runs.
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Install
         # Using `npm install` instead of `npm ci` because package-lock.json
