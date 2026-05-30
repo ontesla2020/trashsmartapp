@@ -46,9 +46,14 @@ if (typeof window !== 'undefined') {
 export async function classify(imageBlob) {
   try {
     const client = await getClient();
-    // Endpoint index 0 corresponds to the Consumer tab's "Identify" button
-    // (c_btn.click(consumer_predict, ...) — the first .click() registered).
-    const result = await client.predict(0, [imageBlob]);
+    // Use the named endpoint + named parameter (the Space's API docs show
+    // it as `/consumer_predict` with one input named `pil_img`). Calling by
+    // index 0 stopped working in Arm B because Gradio registers the same
+    // function twice (consumer_predict and consumer_predict_1), so the
+    // positional fallback is ambiguous.
+    const result = await client.predict('/consumer_predict', {
+      pil_img: imageBlob
+    });
 
     // DEBUG: log the raw Space response so we can see Arm B's actual format
     // when diagnosing parser mismatches. Safe to leave in — useful for the
@@ -74,7 +79,12 @@ export async function classify(imageBlob) {
       space: MODEL_SPACE
     };
   } catch (err) {
-    console.warn('[classifier] HF Space call failed, falling back to mock:', err);
+    console.warn(
+      '[classifier] HF Space call failed, falling back to mock.',
+      'message:', err?.message,
+      'name:', err?.name,
+      'full:', err
+    );
     return mockClassify();
   }
 }
