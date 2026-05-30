@@ -50,8 +50,15 @@ export async function classify(imageBlob) {
     // (c_btn.click(consumer_predict, ...) — the first .click() registered).
     const result = await client.predict(0, [imageBlob]);
 
+    // DEBUG: log the raw Space response so we can see Arm B's actual format
+    // when diagnosing parser mismatches. Safe to leave in — useful for the
+    // A/B test logs anyway.
+    console.log('[classifier] raw Space response:', result?.data);
+
     const markdown = Array.isArray(result?.data) ? result.data[2] : null;
     if (!markdown) throw new Error('Gradio Space returned no markdown payload.');
+
+    console.log('[classifier] markdown payload:', markdown);
 
     const parsed = parseConsumerMarkdown(markdown);
     if (!parsed.label) throw new Error('Could not extract class from markdown.');
