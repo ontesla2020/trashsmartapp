@@ -119,6 +119,81 @@ export function parseConsumerMarkdown(md) {
   return { label, confidence, uncertain };
 }
 
+// ===== Inspector mode =====
+// Calls the Space's `/inspector_predict` endpoint, which returns:
+//   [annotated_image, clean_image, markdown_with_embedded_json]
+// We extract a JSON payload that the Space embeds inside an HTML comment
+// like <!--INSPECTOR_DATA {...} INSPECTOR_DATA--> so we get a structured
+// list of detections + a contamination score without re-parsing pretty
+// markdown.
+
+export async function inspect(imageBlob, targetStream = 'recycle') {
+  try {
+    const client = await getClient();
+    const result = await client.predict('/inspector_predict', {
+      pil_img: imageBlob,
+      target_stream: targetStream
+    });
+
+    console.log('[inspector] raw Space response:', result?.data);
+
+    const markdown = Array.isArray(result?.data) ? result.data[2] : null;
+    if (!markdown) throw new Error('Inspector Space returned no markdown.');
+
+    console.log('[inspector] markdown payload:', markdown);
+
+    const match = markdown.match(/<!--INSPECTOR_DATA\s*([\s\S]*?)\s*INSPECTOR_DATA-->/);
+    if (!match) throw new Error('No INSPECTOR_DATA payload in markdown.');
+
+    const data = JSON.parse(match[1]);
+    return {
+      ...data,
+      source: 'huggingface-space',
+      arm: MODEL_ARM,
+      space: MODEL_SPACE
+    };
+  } catch (err) {
+    console.warn(
+      '[inspector] call failed, falling back to mock.',
+      'message:', err?.message,
+      'name:', err?.name,
+      'full:', err
+    );
+    return mockInspect(targetStream);
+  }
+}
+
+function mockInspect(targetStream) {
+  const items = [
+    { label: 'plastic_bottle', conf: 0.87, stream: 'recycle' },
+    { label: 'banana_peel',    conf: 0.65, stream: 'organic' },
+    { label: 'cardboard',      conf: 0.79, stream: 'recycle' },
+    { label: 'plastic_film',   conf: 0.42, stream: 'trash' }
+  ].map((i) => ({ ...i, clean: i.stream === targetStream }));
+
+  const totalConf = items.reduce((a, b) => a + b.conf, 0) || 1;
+  const cleanConf = items.filter((i) => i.clean).reduce((a, b) => a + b.conf, 0);
+  const purity = cleanConf / totalConf;
+  const contamination = 1 - purity;
+  const grade =
+    purity >= 0.9 ? 'A' : purity >= 0.75 ? 'B' : purity >= 0.6 ? 'C' : purity >= 0.4 ? 'D' : 'F';
+
+  return Promise.resolve({
+    target: targetStream,
+    items,
+    counts: {
+      clean: items.filter((i) => i.clean).length,
+      contaminated: items.filter((i) => !i.clean).length
+    },
+    purity: parseFloat(purity.toFixed(3)),
+    contamination: parseFloat(contamination.toFixed(3)),
+    grade,
+    source: 'mock',
+    arm: 'mock',
+    space: null
+  });
+}
+
 function mockClassify() {
   const pool = [
     'plastic_bottle',

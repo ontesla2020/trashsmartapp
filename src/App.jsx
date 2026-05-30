@@ -5,6 +5,7 @@ import Onboarding from './screens/Onboarding.jsx';
 import Home from './screens/Home.jsx';
 import Scan from './screens/Scan.jsx';
 import ScanResult from './screens/ScanResult.jsx';
+import InspectResult from './screens/InspectResult.jsx';
 import Quests from './screens/Quests.jsx';
 import Streak from './screens/Streak.jsx';
 import Rewards from './screens/Rewards.jsx';
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/" element={<RequireOnboarded><Home /></RequireOnboarded>} />
           <Route path="/scan" element={<RequireOnboarded><Scan /></RequireOnboarded>} />
           <Route path="/scan/result" element={<RequireOnboarded><ScanResult /></RequireOnboarded>} />
+          <Route path="/scan/inspect-result" element={<RequireOnboarded><InspectResult /></RequireOnboarded>} />
           <Route path="/quests" element={<RequireOnboarded><Quests /></RequireOnboarded>} />
           <Route path="/streak" element={<RequireOnboarded><Streak /></RequireOnboarded>} />
           <Route path="/rewards" element={<RequireOnboarded><Rewards /></RequireOnboarded>} />

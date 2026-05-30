@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { classify } from '../lib/classifier.js';
+import { classify, inspect } from '../lib/classifier.js';
 
 // Resize a Blob/File so its longest edge is at most maxEdge px and re-encode
 // as JPEG. The HF Space's YOLO model runs at 640px internally, so 1024 is
@@ -19,6 +19,14 @@ async function downscale(blob, maxEdge = 1024, quality = 0.78) {
   return new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
 }
 
+// Streams the Inspector can audit against.
+const INSPECT_STREAMS = [
+  { id: 'recycle', label: 'Recycling',  icon: 'ti-recycle' },
+  { id: 'organic', label: 'Compost',    icon: 'ti-apple' },
+  { id: 'ewaste',  label: 'E-Waste',    icon: 'ti-battery-3' },
+  { id: 'trash',   label: 'Landfill',   icon: 'ti-trash' }
+];
+
 export default function Scan() {
   const navigate = useNavigate();
   const videoRef = useRef(null);
@@ -28,6 +36,10 @@ export default function Scan() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(null); // object URL of the snapped photo
+
+  // Consumer = "identify one item", Inspector = "audit a bin for contamination"
+  const [mode, setMode] = useState('consumer');
+  const [targetStream, setTargetStream] = useState('recycle');
 
   useEffect(() => {
     let cancelled = false;
@@ -80,11 +92,13 @@ export default function Scan() {
 
   async function classifyAndGo(blob) {
     const small = await downscale(blob);
-    const result = await classify(small);
-    // Pass the original photo through so the result screen can show it
-    // next to the recommendation. Blobs are structured-cloneable so React
-    // Router can carry them in location.state.
-    navigate('/scan/result', { state: { result, photoBlob: blob } });
+    if (mode === 'inspector') {
+      const report = await inspect(small, targetStream);
+      navigate('/scan/inspect-result', { state: { report, photoBlob: blob, targetStream } });
+    } else {
+      const result = await classify(small);
+      navigate('/scan/result', { state: { result, photoBlob: blob } });
+    }
   }
 
   // Pause briefly so the user actually sees the captured photo before the
@@ -137,6 +151,12 @@ export default function Scan() {
     }
   }
 
+  const tipText = busy
+    ? 'Sending photo to the model…'
+    : mode === 'inspector'
+      ? `Tip: photograph the whole bin contents`
+      : 'Tip: clean items earn +5 bonus XP';
+
   return (
     <div className="screen scan dark">
       <header className="scan-header">
@@ -147,6 +167,52 @@ export default function Scan() {
         <span className="icon-btn placeholder"></span>
       </header>
 
+      {/* Mode toggle — Consumer = single item, Inspector = audit a bin */}
+      <div className="mode-toggle" role="tablist" aria-label="Scan mode">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'consumer'}
+          className={`mode-toggle-btn${mode === 'consumer' ? ' active' : ''}`}
+          onClick={() => setMode('consumer')}
+          disabled={busy}
+        >
+          <i className="ti ti-camera" aria-hidden="true"></i>
+          Identify
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'inspector'}
+          className={`mode-toggle-btn${mode === 'inspector' ? ' active' : ''}`}
+          onClick={() => setMode('inspector')}
+          disabled={busy}
+        >
+          <i className="ti ti-search" aria-hidden="true"></i>
+          Inspect bin
+        </button>
+      </div>
+
+      {/* Stream picker shown only in Inspector mode */}
+      {mode === 'inspector' && (
+        <div className="stream-picker" role="radiogroup" aria-label="Target stream">
+          {INSPECT_STREAMS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              role="radio"
+              aria-checked={targetStream === s.id}
+              className={`stream-chip${targetStream === s.id ? ' active' : ''}`}
+              onClick={() => setTargetStream(s.id)}
+              disabled={busy}
+            >
+              <i className={`ti ${s.icon}`} aria-hidden="true"></i>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="viewfinder">
         {preview ? (
           <>
@@ -154,7 +220,7 @@ export default function Scan() {
             {busy && (
               <div className="viewfinder-chip" role="status" aria-live="polite">
                 <i className="ti ti-loader-2 spin" aria-hidden="true"></i>
-                <span>Analyzing…</span>
+                <span>{mode === 'inspector' ? 'Inspecting…' : 'Analyzing…'}</span>
               </div>
             )}
             <span className="corner tl"></span>
@@ -181,7 +247,7 @@ export default function Scan() {
 
       <div className="scan-tip">
         <i className="ti ti-bulb" aria-hidden="true"></i>
-        {busy ? 'Sending photo to the model…' : 'Tip: clean items earn +5 bonus XP'}
+        {tipText}
       </div>
 
       <div className="scan-actions">
