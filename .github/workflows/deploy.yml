@@ -51,6 +51,12 @@ jobs:
           # To switch arms in prod, change these two lines and push.
           VITE_HF_SPACE: "ontesla2020/trashsmartapp2"
           VITE_MODEL_ARM: "B · YOLO-only"
+          # The HF token is read from a GitHub Actions secret named
+          # VITE_HF_TOKEN. It gets baked into the JS bundle (visible to
+          # anyone who views source), so the token MUST be inference-only
+          # scope — no repo or write access. Token gives the PWA access
+          # to the user's Pro ZeroGPU quota.
+          VITE_HF_TOKEN: ${{ secrets.VITE_HF_TOKEN }}
         run: npm run build
 
       - name: Upload Pages artifact
