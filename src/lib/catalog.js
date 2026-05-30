@@ -159,7 +159,6 @@ export const ITEMS = {
 // Maps the model's class strings (and a few aliases) to catalog item ids.
 // Add aliases freely — the resolver normalises whitespace and case.
 export const LABEL_TO_ITEM = {
-<<<<<<< Updated upstream
   // ===== Direct mappings (backend label === existing legacy label) =====
   plastic_bottle: 'pet_bottle',
   'plastic bottle': 'pet_bottle',
@@ -201,24 +200,6 @@ export const LABEL_TO_ITEM = {
   electronics: 'electronics',
   phone: 'electronics',
   laptop: 'electronics',
-=======
-  paper: 'paper',
-  cardboard: 'cardboard',
-  plastic_bottle: 'plastic_bottle',
-  hard_plastic: 'hard_plastic',
-  plastic_film: 'plastic_film',
-  metal_can: 'metal_can',
-  other_metal: 'other_metal',
-  glass_bottle: 'glass_bottle',
-  other_glass: 'other_glass',
-  organic_food: 'organic_food',
-  textiles: 'textiles',
-  cigarette_waste: 'cigarette_waste',
-  sanitary_waste: 'sanitary_waste',
-  hazardous: 'hazardous',
-  other_mixed: 'other_mixed'
-};
->>>>>>> Stashed changes
 
   // ===== New backend classes that need mapping =====
 
