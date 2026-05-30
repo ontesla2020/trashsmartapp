@@ -260,7 +260,11 @@ export default function Scan() {
         <span className="icon-btn lg placeholder"></span>
       </div>
 
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={fromFile} hidden />
+      {/* No capture="environment" here — that attribute forces iOS to open
+          the camera and skip the photo library. The shutter button handles
+          live camera via getUserMedia, so this input is purely for the
+          "pick from your photos" path. */}
+      <input ref={fileRef} type="file" accept="image/*" onChange={fromFile} hidden />
     </div>
   );
 }
